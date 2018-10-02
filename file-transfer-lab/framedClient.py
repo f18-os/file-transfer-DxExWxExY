@@ -55,7 +55,16 @@ def send_message(user_input):
         framedSend(s, msg.encode())
         framedSend(s, open(file, "rb").read(), 1)
     elif re.match("get\s[\w\W]+", user_input):
-        pass
+        framedSend(s, user_input.encode())
+        if framedReceive(s).decode() == "true":
+            trash, file = user_input.split(" ",1)
+            writer = open("%s/%s" % (os.getcwd(), file), "wb+")
+            payload = framedReceive(s)
+            writer.write(payload)
+            writer.close()
+            print("Transfer Done.")
+        else:
+            print("File not Found.")
     elif user_input == "quit":
         print("Killing Server...")
         framedSend(s, "quit".encode())
@@ -64,9 +73,6 @@ def send_message(user_input):
     else:
         framedSend(s, user_input.encode())
         print("Response:", framedReceive(s))
-
-def get_file():
-    pass
 
 if __name__ == '__main__':
     init_client()

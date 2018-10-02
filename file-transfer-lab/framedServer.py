@@ -41,7 +41,14 @@ if __name__ == '__main__':
             payload = framedReceive(sock,1)
             writer.write(payload)
             writer.close()
-            print("Done.")
+            print("Transfer Done.")
+        elif re.match("get\s[\w\W]+", payload.decode()):
+            trash, file = payload.decode().split(" ",1)
+            if os.path.exists("%s/server_files/%s" % (os.getcwd(),file)):
+                framedSend(sock,"true".encode())
+                framedSend(sock, open("%s/server_files/%s" % (os.getcwd(),file), "rb").read(), 1)
+            else:
+                framedSend(sock,"false".encode())
         elif payload == "quit".encode():
             framedSend(sock, "Server Killed.".encode(), debug)
             print("Exiting...")
