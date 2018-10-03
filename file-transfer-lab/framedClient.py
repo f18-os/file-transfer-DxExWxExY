@@ -56,7 +56,8 @@ def send_message(user_input):
         framedSend(s, open(file, "rb").read(), 1)
     elif re.match("get\s[\w\W]+", user_input):
         framedSend(s, user_input.encode())
-        if framedReceive(s).decode() == "true":
+        payload = framedReceive(s)
+        if payload != None:
             trash, file = user_input.split(" ",1)
             writer = open("%s/%s" % (os.getcwd(), file), "wb+")
             payload = framedReceive(s)

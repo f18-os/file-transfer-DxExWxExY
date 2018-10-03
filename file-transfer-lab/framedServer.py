@@ -47,6 +47,7 @@ if __name__ == '__main__':
             if os.path.exists("%s/server_files/%s" % (os.getcwd(),file)):
                 framedSend(sock,"true".encode())
                 framedSend(sock, open("%s/server_files/%s" % (os.getcwd(),file), "rb").read(), 1)
+                print("Transfer Done.")
             else:
                 framedSend(sock,"false".encode())
         elif payload == "quit".encode():
