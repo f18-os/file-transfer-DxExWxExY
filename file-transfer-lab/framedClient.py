@@ -48,35 +48,42 @@ def init_client():
         print('could not open socket')
         sys.exit(1)
 
-def send_message(user_input):
-    if re.match("put\s[\w\W]+", user_input):
-        trash, file = user_input.split(" ",1)
-        msg = "put " + file.rsplit('/', 1)[-1]
-        framedSend(s, msg.encode())
-        framedSend(s, open(file, "rb").read(), 1)
-    elif re.match("get\s[\w\W]+", user_input):
-        framedSend(s, user_input.encode())
-        payload = framedReceive(s)
-        if payload != None:
+def send_message():
+    while True:
+        user_input = input("Enter Message\n> ")
+        if re.match("put\s[\w\W]+", user_input):
             trash, file = user_input.split(" ",1)
-            writer = open("%s/%s" % (os.getcwd(), file), "wb+")
+            if os.path.exists("%s/%s" % (os.getcwd(), file)):
+                msg = "put " + file.rsplit('/', 1)[-1]
+                framedSend(s, msg.encode())
+                framedSend(s, open(file, "rb").read(), 1)
+            else:
+                print("File Doesn't Exist.")
+        elif re.match("get\s[\w\W]+", user_input):
+            framedSend(s, user_input.encode())
             payload = framedReceive(s)
-            writer.write(payload)
-            writer.close()
-            print("Transfer Done.")
+            if payload.decode() == "true":
+                trash, file = user_input.split(" ",1)
+                writer = open("%s/%s" % (os.getcwd(), file), "wb+")
+                payload = framedReceive(s)
+                writer.write(payload)
+                writer.close()
+                print("Transfer Done.")
+            else:
+                print("File not Found.")
+        elif user_input == "quit":
+            print("Killing Server...")
+            framedSend(s, "quit".encode())
+            print("Response:", framedReceive(s))
+            sys.exit(0)
         else:
-            print("File not Found.")
-    elif user_input == "quit":
-        print("Killing Server...")
-        framedSend(s, "quit".encode())
-        print("Response:", framedReceive(s))
-        sys.exit(0)
-    else:
-        framedSend(s, user_input.encode())
-        print("Response:", framedReceive(s))
+            framedSend(s, user_input.encode())
+            print("Response:", framedReceive(s))
 
 if __name__ == '__main__':
     init_client()
-    while True:
-        user_input = input("Enter Message\n> ")
-        send_message(user_input)
+    try:
+        send_message()
+    except Exception as e:
+        print("Server Disconnected. Trying Again.")
+        send_message()
